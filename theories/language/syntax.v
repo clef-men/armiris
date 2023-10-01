@@ -64,6 +64,7 @@ Record operand := {
   operand_offset : Z ;
 }.
 Implicit Types opd : operand.
+
 Notation "[[ r , ofs ]]" := (
   {| operand_register := r ; operand_offset := ofs |}
 )(r, ofs at level 200
