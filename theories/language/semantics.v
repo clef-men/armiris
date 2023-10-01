@@ -1,4 +1,4 @@
-From stdpp Require Export
+From stdpp Require Import
   functions.
 
 From armiris Require Import
