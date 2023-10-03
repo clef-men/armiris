@@ -237,6 +237,31 @@ Section armiris_GS.
       LDR reg_trap domain_exn_handler
     ].
 
+  Definition call_gc :=
+    [ (* Save return address and frame pointer *)
+      SUB SP [[SP, 2]];
+      STR X29 [[SP, 0]];
+      STR X30 [[SP, 1]];
+      MOV X29 SP
+    ] ++
+      save_registers
+    ++
+      ocaml_to_c
+    ++ [
+      BL "garbage_collection"
+    ] ++
+      c_to_ocaml
+    ++
+      restore_registers
+    ++ [
+      (* Free stack space and return to caller *)
+      LDR X29 [[SP, 0]];
+      LDR X30 [[SP, 1]];
+      ADD SP [[SP, 2]];
+      RET
+    ].
+  Variable Hcall_gc : armiris_prog !! "call_gc" = Some call_gc.
+
   Definition alloc1 :=
     [ LDR tmp1 domain_young_limit;
       SUB reg_alloc [[reg_alloc, 2]];
@@ -265,9 +290,9 @@ Section armiris_GS.
   Variable Halloc3 : armiris_prog !! "alloc3" = Some alloc3.
 
   Definition c_call :=
-    [ SUB SP [[SP, 16]];
+    [ SUB SP [[SP, 2]];
       STR X29 [[SP, 0]];
-      STR X30 [[SP, 8]];
+      STR X30 [[SP, 1]];
       ADD X29 [[SP, 0]]
     ] ++
       ocaml_to_c
@@ -283,8 +308,8 @@ Section armiris_GS.
       c_to_ocaml
     ++ [
       LDR X29 [[SP, 0]];
-      LDR X30 [[SP, 8]];
-      ADD SP [[SP, 16]];
+      LDR X30 [[SP, 1]];
+      ADD SP [[SP, 2]];
       RET
     ].
   Variable Hc_call : armiris_prog !! "c_call" = Some c_call.
